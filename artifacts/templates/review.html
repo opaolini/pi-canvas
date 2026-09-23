@@ -1,0 +1,36 @@
+<!-- review: Verdict + legend · Change map (flow or sequence) · Findings (cards by severity, each with a diff hunk + notes) · Questions · Checklist.
+     Severity tones: risk = must fix, warn = should fix, info = nit/context, ok = verified good. -->
+<section id="verdict">
+  <h2>Verdict</h2>
+  <aside class="callout {{ok|warn|risk}}" data-label="Verdict">{{One paragraph: merge / merge after fixes / do not merge, and why}}</aside>
+  <p class="small"><span class="chip risk">must fix</span> <span class="chip warn">should fix</span> <span class="chip info">nit</span> <span class="chip ok">verified</span></p>
+</section>
+
+<section id="change-map">
+  <h2>Change map</h2>
+  <script type="application/json" data-component="flow">
+  {"nodes":[{"id":"a","label":"{{caller}}"},{"id":"b","label":"{{changed module}}","tone":"accent","sub":"{{+N −M}}"},{"id":"c","label":"{{downstream}}"}],"edges":[{"from":"a","to":"b"},{"from":"b","to":"c"}]}
+  </script>
+</section>
+
+<section id="findings">
+  <h2>Findings</h2>
+  <article class="card accent-risk">
+    <h3><span class="chip risk">must fix</span> {{Finding title}}</h3>
+    <p>{{What is wrong, what breaks, how to fix.}}</p>
+    <script type="application/json" data-component="diff">
+    {"file":"{{path}}","diff":"@@ -1,2 +1,2 @@\n {{context line}}\n-{{old line}}\n+{{new line}}\n","notes":[{"match":"{{new line}}","text":"{{annotation}}","tone":"risk"}]}
+    </script>
+  </article>
+</section>
+
+<section id="questions">
+  <h2>Questions for the author</h2>
+  <ol><li>{{Question}}</li></ol>
+</section>
+
+<section id="checklist">
+  <h2>Checklist</h2>
+  <table class="data"><thead><tr><th>Check</th><th>Status</th><th>Evidence</th></tr></thead>
+  <tbody><tr><td>{{Tests cover the change}}</td><td><span class="chip ok">yes</span></td><td>{{link / command}}</td></tr></tbody></table>
+</section>

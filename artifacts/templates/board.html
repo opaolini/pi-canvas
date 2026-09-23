@@ -1,0 +1,23 @@
+<!-- board: Instructions · board component (columns + cards, pre-sorted by your best guess) · what happens with the export.
+     The reviewer drags cards, adds rationale, clicks Copy as Markdown/prompt and pastes it back to you. -->
+<section id="instructions">
+  <h2>How to use this board</h2>
+  <p>Drag cards between columns, add a one-line rationale where it helps, then <b>Copy as prompt</b> and paste it back. Positions persist in this browser until you press Reset.</p>
+</section>
+
+<section id="board">
+  <h2>{{What is being triaged}}</h2>
+  <script type="application/json" data-component="board">
+  {"columns":["Now","Next","Later","Cut"],"export":"all","cards":[
+    {"id":"{{T-1}}","title":"{{title}}","meta":"{{owner · size · age}}","column":"Now","note":"{{your pre-sort rationale}}"},
+    {"id":"{{T-2}}","title":"{{title}}","meta":"{{owner}}","column":"Next"},
+    {"id":"{{T-3}}","title":"{{title}}","column":"Later"},
+    {"id":"{{T-4}}","title":"{{title}}","column":"Cut","note":"{{why}}"}
+  ]}
+  </script>
+</section>
+
+<section id="export">
+  <h2>What happens with the export</h2>
+  <p>{{e.g. I will update the task list and issue priorities to match, and record the rationale per bucket.}}</p>
+</section>

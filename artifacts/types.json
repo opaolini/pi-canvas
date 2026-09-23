@@ -1,0 +1,11 @@
+{
+  "explainer": { "title": "Explainer", "purpose": "Explain how a system, mechanism, or decision works — optimized for one read", "sections": ["Summary", "How it works", "Key code", "Gotchas", "FAQ", "Sources"], "template": "explainer.html" },
+  "review":    { "title": "Review", "purpose": "Review a PR/change: verdict, change map, severity-coded findings with annotated snippets", "sections": ["Verdict", "Change map", "Findings", "Questions for the author", "Checklist"], "template": "review.html" },
+  "compare":   { "title": "Compare", "purpose": "Lay out 2–6 options side by side with trade-offs and a recommendation", "sections": ["Question", "Options", "Recommendation", "What would change my mind"], "template": "compare.html" },
+  "plan":      { "title": "Plan", "purpose": "Execution plan: goal, dependency waves, work items, risks, open decisions", "sections": ["Goal", "Waves", "Work items", "Risks", "Open decisions"], "template": "plan.html" },
+  "report":    { "title": "Report", "purpose": "Status / incident / research report with KPIs, timeline, evidence, follow-ups", "sections": ["KPIs", "What happened", "Evidence", "Decisions & follow-ups", "Appendix"], "template": "report.html" },
+  "deck":      { "title": "Deck", "purpose": "Slide deck: <section class=\"slide\"> per slide, arrow keys to navigate, ?all to stack", "sections": ["Title", "Context", "Content ×3", "Next steps"], "template": "deck.html" },
+  "board":     { "title": "Board", "purpose": "Drag-and-drop triage/bucketing board that exports Markdown/JSON/prompt back to the agent", "sections": ["Instructions", "Board", "What happens with the export"], "template": "board.html" },
+  "dashboard": { "title": "Dashboard", "purpose": "Metrics view (dark): KPIs, bar distributions, sortable table, notes", "sections": ["KPIs", "Distribution", "Detail table", "Notes"], "template": "dashboard.html", "theme": "dark" },
+  "blank":     { "title": "Blank", "purpose": "Empty content region; use when no type fits", "sections": [], "template": "blank.html" }
+}

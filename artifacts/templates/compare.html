@@ -1,0 +1,26 @@
+<!-- compare: Question · Options (compare component; 2–6 options, optional criteria matrix 0–3) · Recommendation · What would change my mind. -->
+<section id="question">
+  <h2>Question</h2>
+  <p class="lead">{{The decision being made and its constraints}}</p>
+</section>
+
+<section id="options">
+  <h2>Options</h2>
+  <script type="application/json" data-component="compare">
+  {"options":[
+    {"title":"{{Option A}}","summary":"{{one line}}","pros":["{{pro}}"],"cons":["{{con}}"],"tradeoff":"{{what you give up}}","tags":["{{tag}}"],"tone":"ok"},
+    {"title":"{{Option B}}","summary":"{{one line}}","pros":["{{pro}}"],"cons":["{{con}}"],"tradeoff":"{{what you give up}}","tone":"warn"}
+  ],
+  "criteria":[{"name":"{{Criterion}}","scores":{"{{Option A}}":3,"{{Option B}}":1}}]}
+  </script>
+</section>
+
+<section id="recommendation">
+  <h2>Recommendation</h2>
+  <aside class="callout ok" data-label="Recommendation">{{Pick, and the two reasons that decide it}}</aside>
+</section>
+
+<section id="change-my-mind">
+  <h2>What would change my mind</h2>
+  <ul><li>{{Evidence or constraint that would flip the pick}}</li></ul>
+</section>

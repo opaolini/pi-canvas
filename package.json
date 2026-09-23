@@ -1,0 +1,44 @@
+{
+  "name": "pi-canvas",
+  "version": "0.1.0",
+  "description": "Self-contained HTML artifacts (explainers, plans, reviews, charts, boards) with in-browser annotation, local pre-PR diff review, and a human review gate for pi.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "artifacts",
+    "code-review",
+    "html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opaolini/pi-canvas.git"
+  },
+  "bin": {
+    "artifact": "artifacts/artifact"
+  },
+  "scripts": {
+    "test": "bun test artifacts && node --test test/*.test.mjs"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
+  }
+}

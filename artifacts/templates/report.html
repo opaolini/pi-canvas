@@ -1,0 +1,33 @@
+<!-- report: KPIs · What happened (timeline) · Evidence (table / bars) · Decisions & follow-ups · Appendix (details). Real numbers only; label estimates. -->
+<section id="kpis">
+  <h2>At a glance</h2>
+  <script type="application/json" data-component="kpis">
+  [{"label":"{{metric}}","value":"{{value}}","sub":"{{vs. baseline}}","tone":"ok"},{"label":"{{metric}}","value":"{{value}}","tone":"warn"}]
+  </script>
+</section>
+
+<section id="what-happened">
+  <h2>What happened</h2>
+  <script type="application/json" data-component="timeline">
+  [{"t":"{{2026-09-02 14:03}}","label":"{{event}}","detail":"{{evidence}}","tone":"risk"},{"t":"{{2026-09-02 15:10}}","label":"{{event}}","tone":"ok"}]
+  </script>
+</section>
+
+<section id="evidence">
+  <h2>Evidence</h2>
+  <script type="application/json" data-component="bars">
+  {"unit":"{{ms}}","items":[{"label":"{{series}}","value":100,"tone":"info"},{"label":"{{series}}","value":40,"tone":"ok"}]}
+  </script>
+  <table class="data" data-sortable><thead><tr><th>Item</th><th class="num">Value</th><th>Source</th></tr></thead>
+  <tbody><tr><td>{{item}}</td><td class="num">{{value}}</td><td><a href="{{url}}">{{link}}</a></td></tr></tbody></table>
+</section>
+
+<section id="decisions">
+  <h2>Decisions &amp; follow-ups</h2>
+  <ul><li><span class="chip ok">decided</span> {{decision}}</li><li><span class="chip warn">follow-up</span> {{owner — action}}</li></ul>
+</section>
+
+<section id="appendix">
+  <h2>Appendix</h2>
+  <details><summary>{{Raw data / method}}</summary><p>{{…}}</p></details>
+</section>

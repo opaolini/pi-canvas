@@ -1,0 +1,25 @@
+<!-- deck: main gets class "deck" automatically (type). One <section class="slide"> per slide. ← → / space navigate; ?all stacks everything; print shows all. Keep ≤ 5 bullets per slide. -->
+<section class="slide">
+  <h1>{{Title}}</h1>
+  <p class="lead">{{Subtitle · date · audience}}</p>
+</section>
+<section class="slide">
+  <h2>Context</h2>
+  <ul><li>{{Why we are here}}</li><li>{{What changed}}</li></ul>
+</section>
+<section class="slide">
+  <h2>{{Point 1}}</h2>
+  <script type="application/json" data-component="kpis">[{"label":"{{metric}}","value":"{{value}}","tone":"ok"}]</script>
+</section>
+<section class="slide">
+  <h2>{{Point 2}}</h2>
+  <script type="application/json" data-component="flow">{"nodes":[{"id":"a","label":"{{A}}"},{"id":"b","label":"{{B}}","tone":"accent"}],"edges":[{"from":"a","to":"b"}]}</script>
+</section>
+<section class="slide">
+  <h2>{{Point 3}}</h2>
+  <p>{{One idea, one visual}}</p>
+</section>
+<section class="slide">
+  <h2>Next steps</h2>
+  <ol><li>{{Owner — action — date}}</li></ol>
+</section>

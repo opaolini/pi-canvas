@@ -1,0 +1,49 @@
+<!-- explainer: Summary (3 bullets) · How it works (flow + steps) · Key code (annotated, ≤4) · Gotchas · FAQ · Sources.
+     Lead with the answer. One flow per mechanism. Mark guesses with <span class="flag">unverified</span>. -->
+<section id="summary">
+  <h2>Summary</h2>
+  <ul>
+    <li>{{What it is, in one sentence}}</li>
+    <li>{{The one mechanism that matters}}</li>
+    <li>{{The thing people get wrong}}</li>
+  </ul>
+</section>
+
+<section id="how-it-works">
+  <h2>How it works</h2>
+  <script type="application/json" data-component="flow">
+  {"caption":"{{caption}}","nodes":[{"id":"a","label":"{{Input}}"},{"id":"b","label":"{{Step}}","sub":"{{detail}}","tone":"accent"},{"id":"c","label":"{{Output}}","tone":"ok"}],
+   "edges":[{"from":"a","to":"b","label":"{{how}}"},{"from":"b","to":"c"}]}
+  </script>
+  <script type="application/json" data-component="steps">
+  [{"title":"{{Step 1}}","text":"{{what happens and why}}"},{"title":"{{Step 2}}","text":"{{…}}"}]
+  </script>
+</section>
+
+<section id="key-code">
+  <h2>Key code</h2>
+  <div class="code" data-file="{{path/to/file.ts}}">
+    <div class="annotated">
+<pre><code>{{code lines}}
+</code></pre>
+      <ul class="margin">
+        <li data-lines="1">{{why this line matters}}</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="gotchas">
+  <h2>Gotchas</h2>
+  <aside class="callout gotcha">{{The surprising thing}}</aside>
+</section>
+
+<section id="faq">
+  <h2>FAQ</h2>
+  <details><summary>{{Question?}}</summary><p>{{Answer}}</p></details>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="small"><li>{{doc / repo path / URL}}</li></ul>
+</section>

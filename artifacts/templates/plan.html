@@ -1,0 +1,32 @@
+<!-- plan: Goal · Waves (flow) · Work items (table) · Risks · Open decisions. The Markdown project README stays the tracker; this is the readable view. -->
+<section id="goal">
+  <h2>Goal</h2>
+  <p class="lead">{{Outcome in one sentence}}</p>
+  <script type="application/json" data-component="kpis">
+  [{"label":"work items","value":"{{N}}"},{"label":"waves","value":"{{N}}"},{"label":"parallelism ceiling","value":"{{N}}","sub":"{{why}}"}]
+  </script>
+</section>
+
+<section id="waves">
+  <h2>Waves</h2>
+  <script type="application/json" data-component="flow">
+  {"nodes":[{"id":"w1","label":"W1 {{name}}","tone":"accent"},{"id":"w2a","label":"W2 {{name}}"},{"id":"w2b","label":"W2 {{name}}"},{"id":"w3","label":"W3 {{name}}","tone":"ok"}],
+   "edges":[{"from":"w1","to":"w2a"},{"from":"w1","to":"w2b"},{"from":"w2a","to":"w3"},{"from":"w2b","to":"w3"}]}
+  </script>
+</section>
+
+<section id="work-items">
+  <h2>Work items</h2>
+  <table class="data" data-sortable><thead><tr><th>ID</th><th>Wave</th><th>Deliverable</th><th>Acceptance</th><th>State</th></tr></thead>
+  <tbody><tr><td>{{X-001}}</td><td class="num">1</td><td>{{deliverable}}</td><td>{{how we know it's done}}</td><td><span class="chip">todo</span></td></tr></tbody></table>
+</section>
+
+<section id="risks">
+  <h2>Risks</h2>
+  <aside class="callout risk">{{Risk → mitigation}}</aside>
+</section>
+
+<section id="open-decisions">
+  <h2>Open decisions</h2>
+  <ol><li>{{Decision needed, options, recommendation}}</li></ol>
+</section>
