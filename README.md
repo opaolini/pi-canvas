@@ -17,6 +17,15 @@ them in the browser; your notes go back to the agent's pi session.
   [pi-extensible-workflows](https://github.com/vekexasia/pi-extensible-workflows) when that is installed,
   that shows an artifact and blocks until you approve or request changes, with inline notes.
 
+## Example
+
+[`examples/showcase.html`](examples/showcase.html) is a tour of how pi-canvas works, built only from its
+own components: flow and sequence diagrams, a diff with review notes, compare, board, charts, timeline,
+tree, matrix and annotated code. Download it and open it in a browser, or run
+`artifact session examples/showcase.html` to try annotating.
+
+![pi-canvas showcase](examples/showcase.png)
+
 ## Install
 
 ```sh

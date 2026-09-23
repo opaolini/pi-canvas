@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pi-canvas — a tour</title>
+<meta name="kb:type" content="explainer">
+<meta name="kb:slug" content="showcase">
+<meta name="kb:date" content="2026-09-23">
+<meta name="kb:subject" content="artifacts,annotation,review">
+<meta name="kb:sources" content="https://github.com/opaolini/pi-canvas">
+<meta name="kb:question" content="How does pi-canvas turn agent output into something you can read, mark up, and hand back?">
+<meta name="kb:runtime" content="3">
+<!-- kb:runtime:start -->
+<style>
+/* html-artifacts design tokens. Light is the default; dark is opt-in via <html data-theme="dark">. */
+:root {
+  --ink: #17152b;
+  --muted: #66627a;
+  --paper: #ffffff;
+  --canvas: #f5f3fb;
+  --line: #e6e1f1;
+  --accent: #6f4bf2;
+  --accent-deep: #342171;
+  --accent-soft: #eee9ff;
+  --ok: #138a5b;
+  --warn: #b86b00;
+  --risk: #bc3d4b;
+  --info: #2d6cdf;
+  --cyan: #14b8c4;
+  --ok-soft: #e3f4ec;
+  --warn-soft: #fbf0df;
+  --risk-soft: #fbe6e8;
+  --info-soft: #e5edfb;
+  --muted-soft: #ecebf1;
+  --code-bg: #1d1a33;
+  --code-ink: #e9e6f7;
+  --shadow: 0 12px 32px rgba(23, 21, 43, 0.08);
+  --radius: 12px;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --max-w: 1100px;
+  --prose-w: 72ch;
+}
+
+[data-theme="dark"] {
+  --ink: #edf3fa;
+  --muted: #8c9bad;
+  --paper: #101720;
+  --canvas: #090d12;
+  --line: #263241;
+  --accent: #74a7ff;
+  --accent-deep: #c39bff;
+  --accent-soft: #172236;
+  --ok: #68d391;
+  --warn: #f6c85f;
+  --risk: #ff7b72;
+  --info: #66d9ef;
+  --cyan: #66d9ef;
+  --ok-soft: #12261c;
+  --warn-soft: #2b2312;
+  --risk-soft: #2d1718;
+  --info-soft: #12232b;
+  --muted-soft: #161d27;
+  --code-bg: #0c121a;
+  --code-ink: #edf3fa;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* html-artifacts base styles: document rhythm + the component vocabulary in COMPONENTS.md.
+   Everything is class/attribute driven; runtime.js only adds behaviour. */
+
+/* ---------- document ---------- */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--canvas); color: var(--ink);
+  font: 15.5px/1.6 var(--font-sans); -webkit-font-smoothing: antialiased;
+}
+main#kb-content { max-width: var(--max-w); margin: 0 auto; padding: 0 28px 64px; }
+main > section { margin: 40px 0; scroll-margin-top: 24px; }
+h1, h2, h3, h4 { line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 12px; }
+h1 { font-size: 30px; }
+h2 { font-size: 22px; margin-top: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 17px; margin-top: 20px; }
+p, ul, ol { max-width: var(--prose-w); }
+p { margin: 0 0 12px; }
+li { margin: 4px 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+figure { margin: 20px 0; }
+figcaption { color: var(--muted); font-size: 13px; margin-top: 6px; }
+img, svg { max-width: 100%; }
+kbd { font: 12px var(--font-mono); background: var(--muted-soft); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.lead { font-size: 17px; color: var(--muted); max-width: var(--prose-w); }
+.two-col { columns: 2; column-gap: 40px; }
+.two-col > * { break-inside: avoid; }
+.page-break { break-before: page; }
+.flag {
+  display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 1px 6px; vertical-align: middle;
+}
+
+/* ---------- header / footer (rendered by runtime.js from meta) ---------- */
+.kb-header {
+  background: var(--paper); border-bottom: 1px solid var(--line); padding: 28px 28px 22px; margin: 0 -28px 8px;
+}
+.kb-header .kb-inner { max-width: var(--max-w); margin: 0 auto; }
+.kb-header .kb-kicker { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.kb-header h1 { margin: 0 0 8px; }
+.kb-header .kb-question { color: var(--muted); font-size: 16px; max-width: var(--prose-w); margin: 0 0 12px; }
+.kb-header .kb-sources { font-size: 13px; color: var(--muted); }
+.kb-header .kb-sources a { margin-right: 12px; word-break: break-all; }
+.kb-footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 48px; }
+
+/* ---------- toc ---------- */
+.kb-toc { margin: 18px 0 8px; }
+.kb-toc summary { cursor: pointer; font-weight: 600; color: var(--muted); font-size: 13px; }
+.kb-toc ol { margin: 8px 0 0; padding-left: 18px; columns: 2; column-gap: 32px; }
+.kb-toc li { font-size: 14px; break-inside: avoid; }
+@media (min-width: 1360px) {
+  .kb-toc { position: fixed; left: max(16px, calc((100vw - var(--max-w)) / 2 - 240px)); top: 24px; width: 210px; margin: 0; }
+  .kb-toc ol { columns: 1; }
+  .kb-toc summary { list-style: none; }
+  .kb-toc summary::-webkit-details-marker { display: none; }
+}
+
+/* ---------- chips / tones ---------- */
+.chip {
+  display: inline-block; font-size: 12px; font-weight: 600; line-height: 1.5; padding: 1px 9px; border-radius: 999px;
+  background: var(--muted-soft); color: var(--muted); white-space: nowrap;
+}
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.risk { background: var(--risk-soft); color: var(--risk); }
+.chip.info { background: var(--info-soft); color: var(--info); }
+.chip.accent { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- grid / cards ---------- */
+.grid { display: grid; gap: 16px; margin: 16px 0; }
+.grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.card h3 { margin-top: 0; font-size: 16px; }
+.card.accent-ok { border-top: 3px solid var(--ok); }
+.card.accent-warn { border-top: 3px solid var(--warn); }
+.card.accent-risk { border-top: 3px solid var(--risk); }
+.card.accent-info { border-top: 3px solid var(--info); }
+.card.accent-muted { border-top: 3px solid var(--muted); }
+.card.accent-accent { border-top: 3px solid var(--accent); }
+
+/* ---------- callouts ---------- */
+.callout {
+  border-left: 4px solid var(--info); background: var(--info-soft); border-radius: 8px; padding: 12px 16px; margin: 16px 0;
+  max-width: calc(var(--prose-w) + 40px);
+}
+.callout > :last-child { margin-bottom: 0; }
+.callout::before { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.callout.note::before { content: "Note"; color: var(--info); }
+.callout.ok { border-color: var(--ok); background: var(--ok-soft); } .callout.ok::before { content: "Verified"; color: var(--ok); }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); } .callout.warn::before { content: "Caveat"; color: var(--warn); }
+.callout.risk { border-color: var(--risk); background: var(--risk-soft); } .callout.risk::before { content: "Risk"; color: var(--risk); }
+.callout.gotcha { border-color: var(--accent); background: var(--accent-soft); } .callout.gotcha::before { content: "Gotcha"; color: var(--accent); }
+.callout[data-label]::before { content: attr(data-label); }
+
+/* ---------- kpis ---------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.kpi { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.kpi b { display: block; font-size: 26px; line-height: 1.1; letter-spacing: -0.02em; }
+.kpi span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+.kpi small { display: block; font-size: 12px; margin-top: 4px; }
+.kpi.ok b { color: var(--ok); } .kpi.warn b { color: var(--warn); } .kpi.risk b { color: var(--risk); } .kpi.info b { color: var(--info); }
+
+/* ---------- tabs ---------- */
+.tabs { margin: 16px 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; }
+.tabbar { display: flex; gap: 2px; border-bottom: 1px solid var(--line); background: var(--canvas); padding: 6px 6px 0; overflow-x: auto; }
+.tabbar button {
+  border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
+  padding: 8px 14px; border-radius: 8px 8px 0 0;
+}
+.tabbar button[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 -2px 0 var(--accent) inset; }
+.tabs .tab { display: none; padding: 16px 18px; }
+.tabs .tab.active { display: block; }
+.tabs .tab > .tab-title { display: none; }
+
+/* ---------- details ---------- */
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 10px 16px; margin: 10px 0; max-width: calc(var(--prose-w) + 40px); }
+details > summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: 8px; }
+.details-group details { margin: 6px 0; }
+
+/* ---------- code ---------- */
+pre {
+  background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; overflow: auto;
+  font: 13px/1.55 var(--font-mono); margin: 12px 0; position: relative;
+}
+code { font: 0.92em var(--font-mono); }
+:not(pre) > code { background: var(--muted-soft); border-radius: 5px; padding: 1px 5px; }
+pre > code { background: none; padding: 0; font-size: inherit; }
+.code { margin: 16px 0; }
+.code[data-file]::before { content: attr(data-file); display: inline-block; font: 12px var(--font-mono); color: var(--muted); margin-bottom: -6px; }
+.copy {
+  position: absolute; top: 8px; right: 8px; font: 12px var(--font-sans); font-weight: 600; cursor: pointer;
+  background: rgba(255,255,255,.12); color: var(--code-ink); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 2px 8px;
+}
+.copy:hover { background: rgba(255,255,255,.22); }
+[data-copy] { position: relative; }
+[data-copy] > .copy { position: static; margin-left: 8px; vertical-align: middle; background: var(--paper); color: var(--ink); border-color: var(--line); }
+
+/* annotated code: pre + margin notes */
+.annotated { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(220px, 1fr); gap: 14px; align-items: start; margin: 16px 0; }
+.annotated pre { margin: 0; counter-reset: line; }
+.annotated pre .ln { display: block; padding-left: 3.2em; position: relative; border-radius: 4px; }
+.annotated pre .ln::before { content: attr(data-n); position: absolute; left: 0; width: 2.4em; text-align: right; color: rgba(255,255,255,.35); }
+.annotated pre .ln.hi { background: rgba(116,167,255,.22); }
+.annotated ul.margin { list-style: none; margin: 0; padding: 0; max-width: none; }
+.annotated ul.margin li {
+  border-left: 3px solid var(--line); padding: 6px 12px; margin: 0 0 8px; font-size: 14px; cursor: default; border-radius: 0 8px 8px 0; background: var(--paper);
+}
+.annotated ul.margin li::before { content: "L" attr(data-lines); font: 11px var(--font-mono); color: var(--muted); display: block; }
+.annotated ul.margin li.hi, .annotated ul.margin li:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* ---------- tables ---------- */
+table.data { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; font-size: 14px; margin: 16px 0; }
+table.data th, table.data td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.data th { background: var(--canvas); font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+table.data tr:last-child td { border-bottom: 0; }
+table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data[data-sortable] th { cursor: pointer; user-select: none; }
+table.data[data-sortable] th[aria-sort="ascending"]::after { content: " ▲"; }
+table.data[data-sortable] th[aria-sort="descending"]::after { content: " ▼"; }
+
+/* ---------- steps ---------- */
+ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 16px 0; max-width: calc(var(--prose-w) + 60px); }
+ol.steps > li { counter-increment: step; position: relative; padding: 0 0 18px 44px; margin: 0; }
+ol.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center;
+}
+ol.steps > li:not(:last-child)::after { content: ""; position: absolute; left: 13px; top: 30px; bottom: 0; border-left: 2px solid var(--line); }
+ol.steps > li > b { display: block; margin-bottom: 2px; }
+ol.steps > li.ok::before { background: var(--ok); } ol.steps > li.warn::before { background: var(--warn); } ol.steps > li.risk::before { background: var(--risk); } ol.steps > li.info::before { background: var(--info); } ol.steps > li.muted::before { background: var(--muted); }
+
+/* ---------- timeline ---------- */
+.timeline { position: relative; margin: 16px 0; padding-left: 26px; max-width: calc(var(--prose-w) + 60px); }
+.timeline::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; border-left: 2px solid var(--line); }
+.timeline .tl { position: relative; padding: 0 0 16px; }
+.timeline .tl::before { content: ""; position: absolute; left: -24px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--info); border: 2px solid var(--paper); }
+.timeline .tl.ok::before { background: var(--ok); } .timeline .tl.warn::before { background: var(--warn); } .timeline .tl.risk::before { background: var(--risk); } .timeline .tl.muted::before { background: var(--muted); }
+.timeline .tl time { font: 12.5px var(--font-mono); color: var(--muted); display: block; }
+.timeline .tl b { display: block; }
+.timeline .tl p { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+
+/* ---------- bars ---------- */
+.bars { margin: 16px 0; display: grid; gap: 7px; }
+.bars .bar { display: grid; grid-template-columns: fit-content(180px) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 14px; }
+.bars .bar > span { text-align: right; min-width: 70px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bars .bar > i { display: block; height: 18px; border-radius: 4px; background: var(--info); min-width: 2px; }
+.bars .bar.ok > i { background: var(--ok); } .bars .bar.warn > i { background: var(--warn); } .bars .bar.risk > i { background: var(--risk); } .bars .bar.muted > i { background: var(--muted); } .bars .bar.accent > i { background: var(--accent); }
+.bars .bar > b { font-variant-numeric: tabular-nums; font-size: 13px; }
+.bars .bar > small { grid-column: 2 / 4; color: var(--muted); margin-top: -4px; }
+
+/* ---------- flow (svg) ---------- */
+.flow { margin: 16px 0; overflow-x: auto; }
+.flow svg { display: block; font-family: var(--font-sans); }
+.flow .node rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+.flow .node.ok rect { stroke: var(--ok); } .flow .node.warn rect { stroke: var(--warn); } .flow .node.risk rect { stroke: var(--risk); } .flow .node.info rect { stroke: var(--info); } .flow .node.accent rect { stroke: var(--accent); fill: var(--accent-soft); } .flow .node.muted rect { stroke-dasharray: 4 3; }
+.flow .node text { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.flow .node text.sub { fill: var(--muted); font-size: 11.5px; font-weight: 400; }
+.flow .edge path { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.flow .edge text { fill: var(--muted); font-size: 11px; paint-order: stroke; stroke: var(--canvas); stroke-width: 4px; stroke-linejoin: round; }
+.flow marker path { fill: var(--muted); }
+
+/* ---------- compare ---------- */
+.compare .option .tradeoff { font-size: 13.5px; color: var(--muted); border-top: 1px dashed var(--line); margin-top: 10px; padding-top: 8px; }
+.compare .option ul { margin: 6px 0; padding-left: 18px; font-size: 14px; }
+.compare .option .pros li::marker { color: var(--ok); content: "+ "; }
+.compare .option .cons li::marker { color: var(--risk); content: "− "; }
+.compare .option .tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.compare table.data td.score { text-align: center; font-weight: 700; font-size: 20px; line-height: 1; }
+.compare table.data td.s0 { color: var(--risk); } .compare table.data td.s1 { color: var(--warn); } .compare table.data td.s2 { color: var(--info); } .compare table.data td.s3 { color: var(--ok); }
+
+/* ---------- board ---------- */
+.board { margin: 16px 0; }
+.board .board-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.board .board-col { background: var(--canvas); border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px; min-height: 120px; }
+.board .board-col.over { border-color: var(--accent); background: var(--accent-soft); }
+.board .board-col > h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); display: flex; justify-content: space-between; }
+.board .board-card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; cursor: grab; box-shadow: var(--shadow); }
+.board .board-card:active { cursor: grabbing; }
+.board .board-card.dragging { opacity: .5; }
+.board .board-card .id { font: 11.5px var(--font-mono); color: var(--accent); }
+.board .board-card .title { font-weight: 600; font-size: 14px; }
+.board .board-card .meta { font-size: 12px; color: var(--muted); }
+.board .board-card textarea { width: 100%; margin-top: 6px; font: 12.5px var(--font-sans); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; resize: vertical; min-height: 28px; background: var(--canvas); color: var(--ink); }
+.board .board-actions { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
+.btn { font: 600 13px var(--font-sans); background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.btn.ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--line); }
+.btn:hover { filter: brightness(1.05); }
+
+/* ---------- deck ---------- */
+main.deck { max-width: none; padding: 0; }
+main.deck .kb-header, main.deck .kb-toc, main.deck .kb-footer { display: none; }
+main.deck > section.slide { display: none; min-height: 100vh; margin: 0; padding: 8vh 10vw; background: var(--paper); }
+main.deck > section.slide.active { display: block; }
+main.deck > section.slide h1 { font-size: 44px; } main.deck > section.slide h2 { font-size: 34px; border: 0; }
+main.deck > section.slide p, main.deck > section.slide li { font-size: 20px; }
+main.deck.all > section.slide { display: block; border-bottom: 8px solid var(--canvas); }
+.deck-counter { position: fixed; right: 18px; bottom: 14px; font: 13px var(--font-mono); color: var(--muted); }
+main.deck.all .deck-counter { display: none; }
+
+/* ---------- diff ---------- */
+.diff { margin: 16px 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--paper); }
+.diff .diff-head { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--canvas); font: 12.5px var(--font-mono); }
+.diff .diff-head .fname { flex: 1; color: var(--muted); }
+.diff-table { width: 100%; border-collapse: collapse; font: 12.5px/1.55 var(--font-mono); }
+.diff-table td { padding: 0 10px; vertical-align: top; white-space: pre-wrap; word-break: break-word; }
+.diff-table td.ln { width: 1%; min-width: 2.6em; white-space: nowrap; text-align: right; color: var(--muted); user-select: none; opacity: .7; padding: 0 6px; border-right: 1px solid var(--line); }
+.diff-table td.code .sign { display: inline-block; width: 1.2em; color: var(--muted); }
+.diff-table tr.add td { background: var(--ok-soft); } .diff-table tr.add td.code .sign { color: var(--ok); }
+.diff-table tr.del td { background: var(--risk-soft); } .diff-table tr.del td.code .sign { color: var(--risk); }
+.diff-table tr.hunk td { background: var(--info-soft); color: var(--info); font-size: 11.5px; padding: 3px 10px; }
+.diff-table tr.note td { padding: 6px 12px 6px 48px; font: 13.5px var(--font-sans); background: var(--paper); }
+.diff-table tr.note .callout { margin: 0; max-width: none; }
+
+/* ---------- sequence ---------- */
+.sequence { margin: 16px 0; overflow-x: auto; }
+.sequence svg { display: block; font-family: var(--font-sans); }
+.sequence .actor rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+.sequence .actor.accent rect { fill: var(--accent-soft); stroke: var(--accent); } .sequence .actor.ok rect { stroke: var(--ok); } .sequence .actor.muted rect { stroke-dasharray: 4 3; }
+.sequence .actor text { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.sequence .actor line { stroke: var(--line); stroke-dasharray: 3 4; }
+.sequence .msg line, .sequence .msg path { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.sequence .msg.dashed line, .sequence .msg.dashed path { stroke-dasharray: 5 4; stroke: var(--muted); }
+.sequence .msg.ok line { stroke: var(--ok); } .sequence .msg.risk line, .sequence .msg.risk path { stroke: var(--risk); } .sequence .msg.warn line { stroke: var(--warn); } .sequence .msg.info line { stroke: var(--info); } .sequence .msg.accent line { stroke: var(--accent); }
+.sequence .msg text { fill: var(--ink); font-size: 12px; paint-order: stroke; stroke: var(--canvas); stroke-width: 4px; stroke-linejoin: round; }
+.sequence .msg text.note { fill: var(--muted); font-size: 11px; }
+.sequence .msg.risk text { fill: var(--risk); } .sequence .msg.ok text { fill: var(--ok); }
+.sequence marker path { fill: var(--ink); }
+.sequence text.gap { fill: var(--muted); font-size: 11px; font-style: italic; }
+
+/* ---------- line / sparkline ---------- */
+.line { margin: 16px 0; }
+.line svg { display: block; max-width: 100%; height: auto; font-family: var(--font-sans); }
+.line .grid { stroke: var(--line); }
+.line .tick { fill: var(--muted); font-size: 11px; }
+.line .series path, .sparkline .series path { fill: none; stroke-width: 2; stroke: var(--info); stroke-linejoin: round; stroke-linecap: round; }
+.line .series circle, .sparkline .series circle { fill: var(--info); }
+.line .series.ok path, .sparkline .series.ok path { stroke: var(--ok); } .line .series.ok circle, .sparkline .series.ok circle { fill: var(--ok); }
+.line .series.warn path, .sparkline .series.warn path { stroke: var(--warn); } .line .series.warn circle, .sparkline .series.warn circle { fill: var(--warn); }
+.line .series.risk path, .sparkline .series.risk path { stroke: var(--risk); } .line .series.risk circle, .sparkline .series.risk circle { fill: var(--risk); }
+.line .series.accent path, .sparkline .series.accent path { stroke: var(--accent); } .line .series.accent circle, .sparkline .series.accent circle { fill: var(--accent); }
+.line .series.muted path, .sparkline .series.muted path { stroke: var(--muted); } .line .series.muted circle, .sparkline .series.muted circle { fill: var(--muted); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--info); display: inline-block; }
+.legend .ok i { background: var(--ok); } .legend .warn i { background: var(--warn); } .legend .risk i { background: var(--risk); } .legend .accent i { background: var(--accent); } .legend .muted i { background: var(--muted); }
+.legend b { color: var(--ink); }
+.sparkline { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; line-height: 1; }
+.sparkline svg { display: inline-block; }
+.sparkline b { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ---------- tree ---------- */
+.tree { margin: 16px 0; font-size: 14px; }
+.tree ul { list-style: none; margin: 0; padding-left: 20px; position: relative; max-width: none; }
+.tree > ul { padding-left: 0; }
+.tree ul ul::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 8px; border-left: 1px solid var(--line); }
+.tree li { position: relative; margin: 2px 0; padding: 1px 0; }
+.tree ul ul > li::before { content: ""; position: absolute; left: -14px; top: 12px; width: 10px; border-top: 1px solid var(--line); }
+.tree details { border: 0; padding: 0; margin: 0; background: none; max-width: none; }
+.tree summary { font-weight: 500; }
+.tree details[open] > summary { margin-bottom: 0; }
+.tree .lbl { font-family: var(--font-mono); font-size: 13px; }
+.tree .lbl.ok { color: var(--ok); } .tree .lbl.warn { color: var(--warn); } .tree .lbl.risk { color: var(--risk); } .tree .lbl.accent { color: var(--accent); font-weight: 700; } .tree .lbl.muted { color: var(--muted); text-decoration: line-through; } .tree .lbl.info { color: var(--info); }
+.tree .note { color: var(--muted); font-size: 12.5px; margin-left: 10px; }
+.tree li.leaf { padding-left: 14px; }
+
+/* ---------- matrix ---------- */
+.matrix-wrap { margin: 16px 0; overflow-x: auto; }
+table.data.matrix th { text-align: center; }
+table.data.matrix tbody th { text-align: left; background: var(--canvas); font-weight: 600; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--ink); }
+table.data.matrix td.cell { text-align: center; font-weight: 700; font-size: 14px; }
+table.data.matrix td.cell.ok { background: var(--ok-soft); color: var(--ok); } table.data.matrix td.cell.warn { background: var(--warn-soft); color: var(--warn); } table.data.matrix td.cell.risk { background: var(--risk-soft); color: var(--risk); } table.data.matrix td.cell.info { background: var(--info-soft); color: var(--info); } table.data.matrix td.cell.muted { color: var(--muted); } table.data.matrix td.cell.accent { background: var(--accent-soft); color: var(--accent); }
+table.data.matrix td.cell a { color: inherit; text-decoration: underline; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .annotated { grid-template-columns: 1fr; }
+  .two-col { columns: 1; }
+}
+@media (max-width: 600px) {
+  main#kb-content { padding: 0 16px 48px; }
+  .kb-header { padding: 20px 16px 16px; margin: 0 -16px 8px; }
+  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  .kb-toc ol { columns: 1; }
+  .bars .bar { grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto; }
+}
+
+/* ---------- print ---------- */
+@media print {
+  body { background: #fff; color: #000; font-size: 12.5px; }
+  .kb-toc, .copy, .btn, .board-actions, .deck-counter, .tabbar { display: none !important; }
+  .kb-header { border: 0; padding: 0 0 12px; margin: 0; }
+  main#kb-content { max-width: none; padding: 0; }
+  details { border: 0; padding: 0; }
+  details > summary { list-style: none; }
+  details:not([open]) > *:not(summary) { display: block; }
+  .tabs .tab { display: block !important; border-top: 1px solid #ddd; }
+  .tabs .tab > .tab-title { display: block; font-weight: 700; margin-bottom: 8px; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #f3f3f3; color: #000; border: 1px solid #ccc; }
+  .card, .callout, table.data { box-shadow: none; break-inside: avoid; }
+  main.deck > section.slide { display: block !important; min-height: auto; break-after: page; padding: 24px; }
+  a { color: inherit; } a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 10px; color: #555; }
+}
+
+</style>
+<!-- kb:runtime:end -->
+</head>
+<body>
+<main id="kb-content" class="explainer">
+<!-- kb:content:start -->
+<p class="lead">pi-canvas lets a pi agent answer with a <b>picture instead of a wall of text</b> — a diagram, a chart, a diff, a board — as one self-contained HTML file. You mark it up in the browser; your notes flow straight back into the agent's session.</p>
+
+<section id="at-a-glance">
+  <h2>At a glance</h2>
+  <script type="application/json" data-component="kpis">
+  [{"label":"Output","value":"1 HTML file","sub":"CSS + JS inlined, opens offline","tone":"ok"},
+   {"label":"Data components","value":"13","sub":"diagrams, charts, diffs, boards…","tone":"info"},
+   {"label":"Agent writes","value":"content only","sub":"the runtime owns all styling","tone":"accent"},
+   {"label":"Feedback","value":"path:line","sub":"notes land in the pi session","tone":"warn"}]
+  </script>
+  <div class="grid cols-3">
+    <article class="card accent-info"><h3>Draw</h3><p><code>artifact new</code> writes a skeleton; the agent fills it with JSON data components. <code>artifact check</code> validates and screenshots it.</p></article>
+    <article class="card accent-warn"><h3>Annotate</h3><p><code>artifact session</code> serves it locally with a note layer. Select text, ⌥-click a diagram node, pin a diff line.</p></article>
+    <article class="card accent-ok"><h3>Return</h3><p><b>Send via Pi</b> delivers every note to the agent, which fixes things and replies — the page updates live.</p></article>
+  </div>
+  <aside class="callout note" data-label="You are looking at one">This page is itself a pi-canvas artifact, built only from the components below. Everything is interactive: hover, sort, drag, expand.</aside>
+</section>
+
+<section id="how-it-works">
+  <h2>How it works</h2>
+  <script type="application/json" data-component="flow">
+  {"direction":"lr","caption":"The whole loop",
+   "nodes":[{"id":"a","label":"Agent","sub":"writes content"},{"id":"cli","label":"artifact CLI","sub":"wrap · check · render","tone":"accent"},{"id":"html","label":"HTML file","sub":"assets/files/"},{"id":"srv","label":"Session","sub":"127.0.0.1 + note layer"},{"id":"you","label":"You","sub":"read & annotate","tone":"ok"},{"id":"ic","label":"pi-intercom","sub":"optional","tone":"info"}],
+   "edges":[{"from":"a","to":"cli"},{"from":"cli","to":"html"},{"from":"html","to":"srv"},{"from":"srv","to":"you"},{"from":"you","to":"ic","label":"Send via Pi"},{"from":"ic","to":"a","label":"notes"}]}
+  </script>
+  <script type="application/json" data-component="steps">
+  [{"title":"Pick a type","text":"<code>explainer</code>, <code>plan</code>, <code>review</code>, <code>compare</code>, <code>report</code>, <code>deck</code>, <code>board</code>, <code>dashboard</code> or <code>blank</code>.","tone":"info"},
+   {"title":"Fill the content region","text":"Semantic HTML plus JSON components. No CSS, no JS — one edit between the <code>kb:content</code> markers."},
+   {"title":"Check","text":"Static checks (no external assets, no placeholders, meta present) and a headless-Chrome render with a screenshot.","tone":"ok"},
+   {"title":"Review together","text":"Open a session, annotate, send. The agent replies per note and resolves them."},
+   {"title":"Upgrade forever","text":"Improve the runtime once, <code>artifact rebuild --all</code>, and every old artifact gets it.","tone":"accent"}]
+  </script>
+</section>
+
+<section id="feedback-loop">
+  <h2>The feedback loop</h2>
+  <script type="application/json" data-component="sequence">
+  {"caption":"One note, end to end","actors":[{"id":"u","label":"You"},{"id":"s","label":"Session server","tone":"accent"},{"id":"i","label":"pi-intercom","tone":"info"},{"id":"a","label":"Agent","tone":"ok"}],
+   "steps":[{"from":"u","to":"s","label":"＋ Note on src/auth.ts:11"},{"from":"s","to":"s","label":"save","note":"<file>.notes.json"},{"from":"u","to":"s","label":"Send via Pi"},{"from":"s","to":"i","label":"notes as Markdown + JSON"},{"from":"i","to":"a","label":"message in the session"},{"from":"a","to":"a","label":"fix code"},{"from":"a","to":"s","label":"artifact reply / resolve","dashed":true},{"from":"s","to":"u","label":"page reloads, reply shown","dashed":true}]}
+  </script>
+  <p>Notes are one of four kinds, and anchor to whatever you pointed at:</p>
+  <table class="data">
+    <thead><tr><th>Kind</th><th>Use it for</th><th>Anchor examples</th></tr></thead>
+    <tbody>
+      <tr><td>❓ question</td><td>"why is this like that?"</td><td>selected text · a heading</td></tr>
+      <tr><td>📝 note</td><td>context the agent should know</td><td>a flow node · a chart bar</td></tr>
+      <tr><td>✏️ change</td><td>"do this differently"</td><td>a diff line → <code>path:line</code></td></tr>
+      <tr><td>✅ approve</td><td>sign-off on a part</td><td>a card · the whole page</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="local-review">
+  <h2>Local pre-PR review</h2>
+  <p><code>artifact review</code> renders your branch — committed, uncommitted and untracked changes vs. the merge base — with the agent's verdict and findings on top. Pin a line to leave a note; re-running refreshes the diff and keeps every note.</p>
+  <script type="application/json" data-component="diff">
+  {"file":"src/auth.ts","caption":"Illustrative finding",
+   "diff":"@@ -8,6 +8,9 @@ export async function authenticate(req: Request) {\n   const key = req.headers.get(\"x-api-key\");\n-  if (!key) return null;\n+  if (!key) throw new Unauthorized(\"missing api key\");\n+  const cached = cache.get(key);\n+  if (cached) return cached;\n   const user = await lookup(key);\n-  return user;\n+  cache.set(key, user);\n+  return user;\n }\n",
+   "notes":[{"match":"throw new Unauthorized","text":"Behaviour change — callers that expected <code>null</code> must now catch.","tone":"risk","label":"must fix"},{"match":"cache.set","text":"Unbounded cache: add a TTL or LRU cap.","tone":"warn","label":"should fix"}]}
+  </script>
+  <div class="tabs">
+    <div class="tab" data-title="Review a branch">
+<pre><code>artifact review review-api-auth --repo ../api --base origin/main
+artifact check review-api-auth
+artifact session review-api-auth --detach --no-open
+artifact session review-api-auth --url     # open this, annotate, Send via Pi</code></pre>
+    </div>
+    <div class="tab" data-title="Make an explainer">
+<pre><code>artifact new explainer rate-limits --title "How rate limiting works" --subject api
+# fill the content region, then
+artifact check rate-limits && artifact open rate-limits</code></pre>
+    </div>
+    <div class="tab" data-title="Answer notes">
+<pre><code>artifact notes rate-limits                 # everything, as Markdown
+artifact reply rate-limits n3k2x "Split into two steps, see diagram"
+artifact resolve rate-limits n3k2x</code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2>Decisions: compare</h2>
+  <p>Where should review feedback live? A <code>compare</code> block lays out options and scores them (● strong · ◑ medium · ◔ weak · ✕ none).</p>
+  <script type="application/json" data-component="compare">
+  {"options":[
+    {"title":"Chat messages","summary":"Describe what to change in prose.","pros":["zero setup"],"cons":["ambiguous about which line","lost after compaction"],"tradeoff":"fast but lossy","tone":"muted"},
+    {"title":"PR comments","summary":"Push, open a PR, comment on the forge.","pros":["line-anchored","familiar"],"cons":["public too early","slow round trip"],"tradeoff":"precise but late","tags":["after push"],"tone":"warn"},
+    {"title":"pi-canvas session","summary":"Annotate locally, notes go to the agent.","pros":["line-anchored","instant round trip","works before any push"],"cons":["local only"],"tradeoff":"precise and early","tags":["recommended"],"tone":"ok"}],
+   "criteria":[{"name":"Precision","scores":{"Chat messages":1,"PR comments":3,"pi-canvas session":3}},{"name":"Speed","scores":{"Chat messages":3,"PR comments":1,"pi-canvas session":3}},{"name":"Privacy","scores":{"Chat messages":3,"PR comments":0,"pi-canvas session":3}}]}
+  </script>
+</section>
+
+<section id="triage">
+  <h2>Triage: board</h2>
+  <p>Try it: drag cards between columns and type a rationale. <b>Copy as Markdown / JSON / prompt</b> hands the result back to the agent.</p>
+  <script type="application/json" data-component="board">
+  {"columns":["Now","Next","Later","Cut"],"export":"all",
+   "cards":[{"id":"T-1","title":"Add TTL to the auth cache","meta":"api · S","column":"Now","note":"flagged in review"},
+            {"id":"T-2","title":"Document the new 401 behaviour","meta":"docs · S","column":"Now"},
+            {"id":"T-3","title":"Dark theme for reports","meta":"ui · M","column":"Later"},
+            {"id":"T-4","title":"Rewrite the scheduler","meta":"infra · XL","column":"Cut","note":"not worth it this quarter"}]}
+  </script>
+</section>
+
+<section id="data">
+  <h2>Data: charts and tables</h2>
+  <div class="grid cols-2">
+    <script type="application/json" data-component="bars">
+    {"unit":"KB","caption":"Illustrative file sizes","items":[{"label":"runtime","value":62,"tone":"info"},{"label":"typical artifact","value":90,"tone":"ok"},{"label":"size cap","value":400,"tone":"muted","note":"check fails above"}]}
+    </script>
+    <script type="application/json" data-component="line">
+    {"caption":"Illustrative notes per day","x":["Mon","Tue","Wed","Thu","Fri"],"series":[{"label":"opened","tone":"warn","values":[3,6,4,7,2]},{"label":"resolved","tone":"ok","values":[1,5,5,6,4]}]}
+    </script>
+  </div>
+  <table class="data" data-sortable>
+    <thead><tr><th>Artifact</th><th>Type</th><th class="num">Notes</th><th>Trend (illustrative)</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>review-api-auth</td><td>review</td><td class="num">7</td><td><script type="application/json" data-component="sparkline">{"values":[1,3,7,5,2,0],"tone":"warn","showLast":false}</script></td><td><span class="chip ok">approved</span></td></tr>
+      <tr><td>rate-limits</td><td>explainer</td><td class="num">2</td><td><script type="application/json" data-component="sparkline">{"values":[0,2,1,0],"tone":"info","showLast":false}</script></td><td><span class="chip info">open</span></td></tr>
+      <tr><td>q4-roadmap</td><td>board</td><td class="num">12</td><td><script type="application/json" data-component="sparkline">{"values":[2,4,9,12,12],"tone":"ok","showLast":false}</script></td><td><span class="chip warn">in review</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="history">
+  <h2>History: timeline</h2>
+  <script type="application/json" data-component="timeline">
+  [{"t":"09:12","label":"Agent drafts the review","detail":"<code>artifact review</code> + verdict and 3 findings","tone":"info"},
+   {"t":"09:20","label":"You leave 4 notes","detail":"two on diff lines, one on the verdict, one general","tone":"warn"},
+   {"t":"09:31","label":"Agent fixes and replies","detail":"diff refreshed, every note answered","tone":"accent"},
+   {"t":"09:35","label":"Approved → PR opened","detail":"draft PR created from the same branch","tone":"ok"}]
+  </script>
+</section>
+
+<section id="structure">
+  <h2>Structure: tree and matrix</h2>
+  <div class="grid cols-2">
+    <div>
+      <h3>The package</h3>
+      <script type="application/json" data-component="tree">
+      {"open":2,"nodes":[{"label":"pi-canvas/","children":[
+        {"label":"artifacts/","note":"CLI, runtime, templates","children":[{"label":"artifact","tone":"accent","note":"the CLI"},{"label":"runtime/","note":"CSS + JS injected into every file"},{"label":"templates/","note":"one skeleton per type"}]},
+        {"label":"extensions/","children":[{"label":"review-gate.ts","tone":"accent","note":"review_gate + reviewGate()"}]},
+        {"label":"skills/","children":[{"label":"html-artifact/"},{"label":"local-review/"}]},
+        {"label":"examples/","note":"this page"}]}]}
+      </script>
+    </div>
+    <div>
+      <h3>Where each feature works</h3>
+      <script type="application/json" data-component="matrix">
+      {"corner":"feature × surface","rows":["Text & element notes","Diff notes → path:line","Send via Pi","Copy as prompt / MD / JSON","Blocking approve / changes"],"cols":["artifact session","review gate"],
+       "cells":{"Text & element notes":{"artifact session":"ok","review gate":"ok"},
+                "Diff notes → path:line":{"artifact session":"ok","review gate":"ok"},
+                "Send via Pi":{"artifact session":"ok","review gate":{"tone":"info","label":"with decision","title":"notes are returned with the approve / changes decision"}},
+                "Copy as prompt / MD / JSON":{"artifact session":"ok","review gate":"muted"},
+                "Blocking approve / changes":{"artifact session":{"tone":"muted","label":"–","title":"an approve note is informational"},"review gate":"ok"}},
+       "legend":{"ok":"supported","info":"different mechanism","muted":"not available"}}
+      </script>
+    </div>
+  </div>
+</section>
+
+<section id="code-anatomy">
+  <h2>Anatomy of a component</h2>
+  <p>This is all an agent writes for the diagram at the top of <a href="#how-it-works">How it works</a>:</p>
+  <div class="code" data-file="content region">
+    <div class="annotated">
+<pre><code>&lt;script type="application/json" data-component="flow"&gt;
+{"direction":"lr",
+ "nodes":[{"id":"a","label":"Agent"},
+          {"id":"cli","label":"artifact CLI","tone":"accent"}],
+ "edges":[{"from":"a","to":"cli"}]}
+&lt;/script&gt;</code></pre>
+      <ul class="margin">
+        <li data-lines="1">A JSON island — no markup, no styling.</li>
+        <li data-lines="2">Layout is automatic; force a direction if you want.</li>
+        <li data-lines="3-4">Tones carry meaning: accent, ok, warn, risk, info, muted.</li>
+        <li data-lines="5">Edges may carry labels; back edges loop around.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="gotchas">
+  <h2>Gotchas</h2>
+  <aside class="callout gotcha">Edit an artifact while a session is open only through the content region and <code>artifact rebuild</code> — the server serves the file as-is on every load.</aside>
+  <aside class="callout warn">Inline HTML in <code>steps[].text</code> and <code>timeline[].detail</code> is live; escape literal tags as <code>&amp;lt;tag&amp;gt;</code>.</aside>
+  <aside class="callout ok">Artifacts never call the network. Mail them, commit them, open them offline.</aside>
+</section>
+
+<section id="faq">
+  <h2>FAQ</h2>
+  <div class="details-group">
+    <details><summary>Do I need pi-intercom?</summary><p>No. Copy as prompt / Markdown / JSON works without it; intercom only powers <b>Send via Pi</b>.</p></details>
+    <details><summary>Where are artifacts written?</summary><p><code>&lt;root&gt;/assets/files/</code>, where root is <code>$ARTIFACT_ROOT</code>, the nearest folder with <code>assets/files/</code>, the git root, or the current folder.</p></details>
+    <details><summary>How do I get this page's source?</summary><p>It's <code>examples/showcase.html</code> in the repo; the content region between the <code>kb:content</code> markers is all hand-written, everything else is runtime.</p></details>
+    <details><summary>Can I add a component?</summary><p>Add it to <code>artifacts/runtime/</code>, document it in <code>COMPONENTS.md</code>, bump <code>RUNTIME_VERSION</code>, then <code>artifact rebuild --all</code>.</p></details>
+  </div>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="small">
+    <li><a href="https://github.com/opaolini/pi-canvas">github.com/opaolini/pi-canvas</a> — README, <code>artifacts/SPEC.md</code>, <code>artifacts/COMPONENTS.md</code></li>
+    <li>Charts marked "illustrative" use example data.</li>
+  </ul>
+</section>
+<!-- kb:content:end -->
+</main>
+<!-- kb:script:start -->
+<script>
+/* html-artifacts runtime v3.
+   Renders header/footer from <meta name="kb:*">, wires behaviours by class/data attribute, and
+   expands <script type="application/json" data-component="..."> blocks into DOM. No network, no
+   dependencies. Errors are prefixed "[kb-error]" so `artifact check` can fail on them; "[kb-ready]"
+   is logged once everything rendered. */
+(function () {
+  "use strict";
+
+  // ---------- error reporting contract ----------
+  var origError = console.error.bind(console);
+  console.error = function () { origError.apply(null, ["[kb-error]"].concat([].slice.call(arguments))); };
+  window.addEventListener("error", function (e) { console.log("[kb-error] " + (e.message || e)); });
+
+  var main = document.getElementById("kb-content") || document.body;
+  var meta = function (k) { var m = document.querySelector('meta[name="kb:' + k + '"]'); return m ? m.getAttribute("content") || "" : ""; };
+  var el = function (tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var tone = function (t) { return /^(ok|warn|risk|info|muted|accent)$/.test(t || "") ? t : ""; };
+  var slug = meta("slug") || location.pathname.split("/").pop();
+  var copyText = function (text, btn) {
+    var done = function () { if (btn) { var t = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = t; }, 1200); } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+    else { var ta = el("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (e) {} ta.remove(); done(); }
+  };
+
+  // ---------- header / footer ----------
+  function renderHeader() {
+    var title = document.title || slug;
+    var sources = meta("sources").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    var subjects = meta("subject").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    var h = el("header", "kb-header");
+    var inner = el("div", "kb-inner");
+    var kicker = el("div", "kb-kicker");
+    kicker.appendChild(el("span", "chip accent", esc(meta("type") || "artifact")));
+    if (meta("date")) kicker.appendChild(el("span", "", esc(meta("date"))));
+    subjects.forEach(function (s) { kicker.appendChild(el("span", "chip", esc(s))); });
+    inner.appendChild(kicker);
+    inner.appendChild(el("h1", "", esc(title)));
+    if (meta("question")) inner.appendChild(el("p", "kb-question", esc(meta("question"))));
+    if (sources.length) {
+      var src = el("div", "kb-sources", "<b>Sources:</b> ");
+      sources.forEach(function (s) {
+        var a = el("a", "", esc(s.replace(/^https?:\/\//, "").slice(0, 80)));
+        a.href = s; a.target = "_blank"; a.rel = "noopener"; src.appendChild(a);
+      });
+      inner.appendChild(src);
+    }
+    h.appendChild(inner);
+    main.insertBefore(h, main.firstChild);
+    var f = el("footer", "kb-footer", "Generated " + esc(meta("date")) + " · <code>" + esc(slug) + "</code> · runtime v" + esc(meta("runtime")) + " · regenerate with <code>artifact rebuild " + esc(slug) + "</code>");
+    main.appendChild(f);
+  }
+
+  // ---------- table of contents ----------
+  function renderToc() {
+    if (main.getAttribute("data-toc") === "off" || main.classList.contains("deck")) return;
+    var hs = [].slice.call(main.querySelectorAll("h2"));
+    if (hs.length < 3) return;
+    var used = {};
+    var toc = el("details", "kb-toc"); toc.open = window.innerWidth >= 1360;
+    toc.appendChild(el("summary", "", "Contents"));
+    var ol = el("ol");
+    hs.forEach(function (h) {
+      if (!h.id) { var id = h.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "section"; while (used[id] || document.getElementById(id)) id += "-x"; h.id = id; }
+      used[h.id] = 1;
+      var li = el("li"); var a = el("a", "", esc(h.textContent)); a.href = "#" + h.id; li.appendChild(a); ol.appendChild(li);
+    });
+    toc.appendChild(ol);
+    var header = main.querySelector(".kb-header");
+    main.insertBefore(toc, header ? header.nextSibling : main.firstChild);
+  }
+
+  // ---------- tabs ----------
+  function wireTabs() {
+    [].forEach.call(main.querySelectorAll(".tabs"), function (box) {
+      var tabs = [].filter.call(box.children, function (c) { return c.classList.contains("tab"); });
+      if (!tabs.length) return;
+      var bar = el("div", "tabbar"); bar.setAttribute("role", "tablist");
+      tabs.forEach(function (t, i) {
+        var title = t.getAttribute("data-title") || "Tab " + (i + 1);
+        t.insertBefore(el("div", "tab-title", esc(title)), t.firstChild);
+        var b = el("button", "", esc(title)); b.setAttribute("role", "tab");
+        b.onclick = function () { select(i); };
+        bar.appendChild(b);
+      });
+      function select(i) {
+        tabs.forEach(function (t, j) { t.classList.toggle("active", i === j); bar.children[j].setAttribute("aria-selected", i === j ? "true" : "false"); });
+      }
+      bar.addEventListener("keydown", function (e) {
+        var cur = [].findIndex.call(bar.children, function (b) { return b.getAttribute("aria-selected") === "true"; });
+        if (e.key === "ArrowRight") { select((cur + 1) % tabs.length); bar.children[(cur + 1) % tabs.length].focus(); }
+        if (e.key === "ArrowLeft") { select((cur - 1 + tabs.length) % tabs.length); bar.children[(cur - 1 + tabs.length) % tabs.length].focus(); }
+      });
+      box.insertBefore(bar, box.firstChild);
+      select(0);
+    });
+  }
+
+  // ---------- copy buttons ----------
+  function wireCopy() {
+    [].forEach.call(main.querySelectorAll("pre > code"), function (code) {
+      var pre = code.parentElement; if (pre.querySelector(".copy")) return;
+      var b = el("button", "copy", "Copy"); b.onclick = function () { copyText(code.textContent, b); }; pre.appendChild(b);
+    });
+    [].forEach.call(main.querySelectorAll("[data-copy]"), function (node) {
+      var b = el("button", "copy", "Copy");
+      b.onclick = function () {
+        var sel = node.getAttribute("data-copy"); var src = sel ? document.querySelector(sel) : node;
+        copyText(src ? src.textContent.trim() : "", b);
+      };
+      node.appendChild(b);
+    });
+  }
+
+  // ---------- annotated code ----------
+  function wireAnnotated() {
+    [].forEach.call(main.querySelectorAll(".annotated"), function (box) {
+      var code = box.querySelector("pre > code"); if (!code) return;
+      var lines = code.textContent.replace(/\n$/, "").split("\n");
+      code.innerHTML = lines.map(function (l, i) { return '<span class="ln" data-n="' + (i + 1) + '">' + esc(l) + "\n</span>"; }).join("");
+      var spans = code.querySelectorAll(".ln");
+      var range = function (spec) { var out = []; String(spec).split(",").forEach(function (p) { var m = p.trim().match(/^(\d+)(?:-(\d+))?$/); if (!m) return; for (var i = +m[1]; i <= +(m[2] || m[1]); i++) out.push(i); }); return out; };
+      var notes = [].slice.call(box.querySelectorAll("ul.margin > li"));
+      var hi = function (note, on) { note.classList.toggle("hi", on); range(note.getAttribute("data-lines")).forEach(function (n) { if (spans[n - 1]) spans[n - 1].classList.toggle("hi", on); }); };
+      notes.forEach(function (note) {
+        note.tabIndex = 0;
+        note.addEventListener("mouseenter", function () { hi(note, true); }); note.addEventListener("mouseleave", function () { hi(note, false); });
+        note.addEventListener("focus", function () { hi(note, true); }); note.addEventListener("blur", function () { hi(note, false); });
+      });
+      spans.forEach(function (s, i) {
+        s.addEventListener("mouseenter", function () { notes.forEach(function (n) { if (range(n.getAttribute("data-lines")).indexOf(i + 1) >= 0) hi(n, true); }); });
+        s.addEventListener("mouseleave", function () { notes.forEach(function (n) { hi(n, false); }); });
+      });
+    });
+  }
+
+  // ---------- sortable tables ----------
+  function wireSortable() {
+    [].forEach.call(main.querySelectorAll("table.data[data-sortable]"), function (table) {
+      var ths = table.querySelectorAll("thead th"); var tbody = table.tBodies[0]; if (!tbody) return;
+      ths.forEach(function (th, idx) {
+        th.addEventListener("click", function () {
+          var dir = th.getAttribute("aria-sort") === "ascending" ? "descending" : "ascending";
+          ths.forEach(function (t) { t.removeAttribute("aria-sort"); }); th.setAttribute("aria-sort", dir);
+          var rows = [].slice.call(tbody.rows);
+          var val = function (r) { var c = r.cells[idx]; var t = c ? (c.getAttribute("data-sort") || c.textContent).trim() : ""; var n = parseFloat(t.replace(/[^0-9.\-]/g, "")); return isNaN(n) || !/^[\s$€£]*-?[\d.,]+/.test(t) ? t.toLowerCase() : n; };
+          rows.sort(function (a, b) { var x = val(a), y = val(b); var r = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y)); return dir === "ascending" ? r : -r; });
+          rows.forEach(function (r) { tbody.appendChild(r); });
+        });
+      });
+    });
+  }
+
+  // ---------- deck ----------
+  function wireDeck() {
+    if (!main.classList.contains("deck")) return;
+    var slides = [].slice.call(main.querySelectorAll(":scope > section.slide")); if (!slides.length) return;
+    var all = /[?&]all\b/.test(location.search) || window.matchMedia("print").matches;
+    var counter = el("div", "deck-counter"); main.appendChild(counter);
+    var i = Math.max(0, Math.min(slides.length - 1, parseInt((location.hash || "#1").slice(1), 10) - 1 || 0));
+    function show(n) { i = (n + slides.length) % slides.length; slides.forEach(function (s, j) { s.classList.toggle("active", j === i); }); counter.textContent = (i + 1) + " / " + slides.length; history.replaceState(null, "", "#" + (i + 1)); }
+    if (all) { main.classList.add("all"); return; }
+    show(i);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
+      else if (e.key === "Home") show(0); else if (e.key === "End") show(slides.length - 1);
+    });
+    main.addEventListener("click", function (e) { if (e.target.closest("a,button,textarea,input,details,summary")) return; show(i + 1); });
+    window.addEventListener("beforeprint", function () { main.classList.add("all"); });
+    window.addEventListener("afterprint", function () { main.classList.remove("all"); show(i); });
+  }
+
+  // ---------- data components ----------
+  var components = {};
+
+  components.kpis = function (d) {
+    var box = el("div", "kpis");
+    d.forEach(function (x) { box.appendChild(el("div", "kpi " + tone(x.tone), "<b>" + esc(x.value) + "</b><span>" + esc(x.label) + "</span>" + (x.sub ? "<small>" + esc(x.sub) + "</small>" : ""))); });
+    return box;
+  };
+
+  components.timeline = function (d) {
+    var box = el("div", "timeline");
+    d.forEach(function (x) { box.appendChild(el("div", "tl " + tone(x.tone), "<time>" + esc(x.t) + "</time><b>" + esc(x.label) + "</b>" + (x.detail ? "<p>" + x.detail + "</p>" : ""))); }); // detail: inline HTML allowed
+    return box;
+  };
+
+  components.steps = function (d) {
+    var ol = el("ol", "steps");
+    d.forEach(function (x) { ol.appendChild(el("li", tone(x.tone), "<b>" + esc(x.title) + "</b>" + (x.text || ""))); }); // text: inline HTML allowed
+    return ol;
+  };
+
+  components.bars = function (d) {
+    var items = d.items || [];
+    var max = d.max || Math.max.apply(null, items.map(function (x) { return +x.value || 0; }).concat([0.000001]));
+    var box = el("div", "bars");
+    items.forEach(function (x) {
+      var pct = Math.max(0, Math.min(100, 100 * (+x.value || 0) / max));
+      box.appendChild(el("div", "bar " + tone(x.tone), "<span title=\"" + esc(x.label) + "\">" + esc(x.label) + "</span><i style=\"width:" + pct.toFixed(1) + "%\"></i><b>" + esc(x.value) + esc(d.unit || "") + "</b>" + (x.note ? "<small>" + esc(x.note) + "</small>" : "")));
+    });
+    return box;
+  };
+
+  // Boxes-and-arrows flowchart. Layers = longest path from a source node; layers laid out lr or tb.
+  components.flow = function (d, _retryTb) {
+    var nodes = d.nodes || [], edges = d.edges || [], tb = d.direction === "tb" || _retryTb === true;
+    var byId = {}; nodes.forEach(function (n) { byId[n.id] = n; n._in = []; n._out = []; });
+    // Detect back edges with a DFS so cycles do not break the layering; back edges are drawn as loops.
+    var state = {}, backEdge = {};
+    edges.forEach(function (e, i) { if (byId[e.from] && byId[e.to]) byId[e.from]._out.push({ to: e.to, i: i }); });
+    function dfs(id) { state[id] = 1; byId[id]._out.forEach(function (o) { if (state[o.to] === 1) backEdge[o.i] = true; else if (!state[o.to]) dfs(o.to); }); state[id] = 2; }
+    nodes.forEach(function (n) { if (!state[n.id]) dfs(n.id); });
+    edges.forEach(function (e, i) { if (!backEdge[i] && byId[e.from] && byId[e.to]) byId[e.to]._in.push(e.from); });
+    var layer = {};
+    var depth = function (id) { if (layer[id] != null) return layer[id]; var n = byId[id]; var dd = n._in.length ? Math.max.apply(null, n._in.map(function (p) { return depth(p) + 1; })) : 0; layer[id] = dd; return dd; };
+    nodes.forEach(function (n) { depth(n.id); });
+    var cols = []; nodes.forEach(function (n) { (cols[layer[n.id]] = cols[layer[n.id]] || []).push(n); });
+    cols = cols.filter(Boolean);
+    // word-wrap label (≤ 26 chars/line, bold 13px) and sub (≤ 34 chars/line, 11.5px); node size follows the wrapped text
+    var wrapText = function (str, max) { var words = String(str || "").split(/\s+/), lines = [], cur = ""; words.forEach(function (w) { if (cur && (cur + " " + w).length > max) { lines.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; }); if (cur) lines.push(cur); return lines; };
+    nodes.forEach(function (n) { n._label = wrapText(n.label, 26); n._sub = n.sub ? wrapText(n.sub, 34) : []; });
+    var longest = function (lines, px) { return Math.max.apply(null, lines.map(function (l) { return l.length * px; }).concat([0])); };
+    var W = function (n) { return Math.max(120, Math.min(250, Math.max(longest(n._label, 7.6), longest(n._sub, 6.3)) + 28)); };
+    var H = function (n) { return 12 + n._label.length * 17 + n._sub.length * 14 + (n._sub.length ? 10 : 8); };
+    var gapMain = tb ? 44 : 70, gapCross = 18, pad = 12;
+    var hasBack = Object.keys(backEdge).length > 0;
+    var pos = {};
+    var colSizes = cols.map(function (c) { return c.reduce(function (a, n) { return a + (tb ? W(n) : H(n)); }, 0) + gapCross * (c.length - 1); });
+    var crossMax = Math.max.apply(null, colSizes);
+    var mainOff = pad;
+    cols.forEach(function (c, ci) {
+      var thick = Math.max.apply(null, c.map(function (n) { return tb ? H(n) : W(n); }));
+      var crossOff = pad + (crossMax - colSizes[ci]) / 2;
+      c.forEach(function (n) {
+        var w = W(n), h = H(n);
+        if (tb) { pos[n.id] = { x: crossOff, y: mainOff, w: w, h: h }; crossOff += w + gapCross; }
+        else { pos[n.id] = { x: mainOff, y: crossOff, w: w, h: h }; crossOff += h + gapCross; }
+      });
+      mainOff += thick + gapMain;
+    });
+    var totalMain = mainOff - gapMain + pad, totalCross = crossMax + pad * 2;
+    var width = (tb ? totalCross : totalMain) + (hasBack && tb ? 150 : 0), height = (tb ? totalMain : totalCross) + (hasBack && !tb ? 50 : 0);
+    var avail = Math.max(600, main.clientWidth - 56);
+    if (!tb && !d.direction && width > avail * 1.15) return components.flow(d, true); // too wide to read: lay out top-to-bottom
+    var s = '<svg viewBox="0 0 ' + width + " " + height + '" width="' + width + '" height="' + height + '" role="img"><defs><marker id="kb-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z"/></marker></defs>';
+    edges.forEach(function (e, ei) {
+      var a = pos[e.from], b = pos[e.to]; if (!a || !b) return;
+      var x1, y1, x2, y2, path;
+      if (tb) { x1 = a.x + a.w / 2; y1 = a.y + a.h; x2 = b.x + b.w / 2; y2 = b.y; }
+      else { x1 = a.x + a.w; y1 = a.y + a.h / 2; x2 = b.x; y2 = b.y + b.h / 2; }
+      var forward = !backEdge[ei] && (tb ? y2 > y1 : x2 > x1);
+      if (forward) {
+        var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        path = tb ? "M" + x1 + "," + y1 + " C" + x1 + "," + my + " " + x2 + "," + my + " " + x2 + "," + y2
+                  : "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
+      } else { // back edge: loop around the outside
+        var bx1 = tb ? a.x + a.w : a.x + a.w / 2, by1 = tb ? a.y + a.h / 2 : a.y + a.h, bx2 = tb ? b.x + b.w : b.x + b.w / 2, by2 = tb ? b.y + b.h / 2 : b.y + b.h;
+        var off = 40;
+        path = tb ? "M" + bx1 + "," + by1 + " C" + (bx1 + off) + "," + by1 + " " + (bx2 + off) + "," + by2 + " " + bx2 + "," + by2
+                  : "M" + bx1 + "," + by1 + " C" + bx1 + "," + (by1 + off) + " " + bx2 + "," + (by2 + off) + " " + bx2 + "," + by2;
+        x1 = bx1; y1 = by1; x2 = bx2; y2 = by2;
+      }
+      s += '<g class="edge"><path d="' + path + '" marker-end="url(#kb-arrow)"/>';
+      if (e.label) { var lx = (x1 + x2) / 2, ly = forward ? (y1 + y2) / 2 - 5 : (tb ? (y1 + y2) / 2 : Math.max(y1, y2) + 34); if (!forward && tb) lx = Math.max(x1, x2) + 44; s += '<text x="' + lx + '" y="' + ly + '" text-anchor="middle">' + esc(e.label) + "</text>"; }
+      s += "</g>";
+    });
+    nodes.forEach(function (n) {
+      var p = pos[n.id];
+      s += '<g class="node ' + tone(n.tone) + '"><rect x="' + p.x + '" y="' + p.y + '" width="' + p.w + '" height="' + p.h + '" rx="8"/>';
+      var ty = p.y + 12 + 13, cx = p.x + p.w / 2;
+      if (!n._sub.length && n._label.length === 1) ty = p.y + p.h / 2 + 5;
+      n._label.forEach(function (l) { s += '<text x="' + cx + '" y="' + ty + '" text-anchor="middle">' + esc(l) + "</text>"; ty += 17; });
+      ty -= 2; n._sub.forEach(function (l) { s += '<text class="sub" x="' + cx + '" y="' + ty + '" text-anchor="middle">' + esc(l) + "</text>"; ty += 14; });
+      s += "</g>";
+    });
+    s += "</svg>";
+    var box = el("figure", "flow", s);
+    if (d.caption) box.appendChild(el("figcaption", "", esc(d.caption)));
+    return box;
+  };
+
+  components.compare = function (d) {
+    var opts = d.options || [];
+    var box = el("div", "compare");
+    var grid = el("div", "grid cols-" + Math.min(3, Math.max(2, opts.length)));
+    opts.forEach(function (o) {
+      var card = el("article", "card option accent-" + (tone(o.tone) || "info"));
+      var html = "<h3>" + esc(o.title) + "</h3>" + (o.summary ? "<p>" + esc(o.summary) + "</p>" : "");
+      if (o.pros && o.pros.length) html += '<ul class="pros">' + o.pros.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>";
+      if (o.cons && o.cons.length) html += '<ul class="cons">' + o.cons.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>";
+      if (o.tradeoff) html += '<div class="tradeoff"><b>Trade-off:</b> ' + esc(o.tradeoff) + "</div>";
+      if (o.tags && o.tags.length) html += '<div class="tags">' + o.tags.map(function (t) { return '<span class="chip">' + esc(t) + "</span>"; }).join("") + "</div>";
+      card.innerHTML = html; grid.appendChild(card);
+    });
+    box.appendChild(grid);
+    if (d.criteria && d.criteria.length) {
+      var t = '<table class="data"><thead><tr><th>Criterion</th>' + opts.map(function (o) { return "<th>" + esc(o.title) + "</th>"; }).join("") + "</tr></thead><tbody>";
+      d.criteria.forEach(function (c) {
+        t += "<tr><td>" + esc(c.name) + "</td>" + opts.map(function (o) { var v = c.scores ? c.scores[o.title] : ""; var cls = typeof v === "number" ? "score s" + Math.max(0, Math.min(3, v)) : ""; return '<td class="' + cls + '">' + esc(typeof v === "number" ? ["✕", "◔", "◑", "●"][Math.max(0, Math.min(3, v))] : v) + "</td>"; }).join("") + "</tr>";
+      });
+      box.appendChild(el("div", "", t + "</tbody></table>"));
+    }
+    return box;
+  };
+
+  // Drag-and-drop triage board with per-card notes, localStorage persistence, and export buttons.
+  components.board = function (d) {
+    var columns = d.columns || ["Now", "Next", "Later", "Cut"];
+    var key = "kb:board:" + slug;
+    var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) { saved = {}; }
+    var cards = (d.cards || []).map(function (c) { var s = saved[c.id] || {}; return { id: c.id, title: c.title, meta: c.meta || "", column: s.column || c.column || columns[0], note: s.note != null ? s.note : (c.note || "") }; });
+    var box = el("div", "board");
+    var cols = el("div", "board-cols"); box.appendChild(cols);
+    var colEls = {};
+    function persist() { var o = {}; cards.forEach(function (c) { o[c.id] = { column: c.column, note: c.note }; }); try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {} }
+    function render() {
+      cols.innerHTML = "";
+      columns.forEach(function (name) {
+        var col = el("section", "board-col"); col.setAttribute("data-col", name);
+        var inCol = cards.filter(function (c) { return c.column === name; });
+        col.appendChild(el("h4", "", esc(name) + "<span>" + inCol.length + "</span>"));
+        inCol.forEach(function (c) {
+          var card = el("div", "board-card"); card.draggable = true; card.setAttribute("data-id", c.id);
+          card.innerHTML = '<div class="id">' + esc(c.id) + '</div><div class="title">' + esc(c.title) + "</div>" + (c.meta ? '<div class="meta">' + esc(c.meta) + "</div>" : "");
+          var ta = el("textarea"); ta.placeholder = "rationale…"; ta.value = c.note; ta.rows = 1;
+          ta.addEventListener("input", function () { c.note = ta.value; persist(); });
+          ta.addEventListener("mousedown", function (e) { e.stopPropagation(); });
+          card.appendChild(ta);
+          card.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.id); card.classList.add("dragging"); });
+          card.addEventListener("dragend", function () { card.classList.remove("dragging"); });
+          col.appendChild(card);
+        });
+        col.addEventListener("dragover", function (e) { e.preventDefault(); col.classList.add("over"); });
+        col.addEventListener("dragleave", function () { col.classList.remove("over"); });
+        col.addEventListener("drop", function (e) { e.preventDefault(); col.classList.remove("over"); var id = e.dataTransfer.getData("text/plain"); var c = cards.filter(function (x) { return x.id === id; })[0]; if (c) { c.column = name; persist(); render(); } });
+        cols.appendChild(col); colEls[name] = col;
+      });
+    }
+    function asMarkdown() { return columns.map(function (name) { var inCol = cards.filter(function (c) { return c.column === name; }); return "## " + name + "\n" + (inCol.length ? inCol.map(function (c) { return "- **" + c.id + "** " + c.title + (c.note ? " — " + c.note : ""); }).join("\n") : "- (none)"); }).join("\n\n") + "\n"; }
+    function asJson() { return JSON.stringify({ columns: columns, cards: cards.map(function (c) { return { id: c.id, title: c.title, meta: c.meta, column: c.column, note: c.note }; }) }, null, 2); }
+    function asPrompt() { return "Here is my triage from the board `" + slug + "` (" + (document.title || "") + "). Apply it: update the tracked items to these buckets and record the rationale.\n\n" + asMarkdown(); }
+    var actions = el("div", "board-actions");
+    var want = d.export || "all";
+    var add = function (label, fn) { var b = el("button", "btn", label); b.onclick = function () { copyText(fn(), b); }; actions.appendChild(b); };
+    if (want === "all" || want === "markdown") add("Copy as Markdown", asMarkdown);
+    if (want === "all" || want === "json") add("Copy as JSON", asJson);
+    if (want === "all" || want === "prompt") add("Copy as prompt", asPrompt);
+    var reset = el("button", "btn ghost", "Reset"); reset.onclick = function () { try { localStorage.removeItem(key); } catch (e) {} location.reload(); }; actions.appendChild(reset);
+    box.appendChild(actions);
+    render();
+    return box;
+  };
+
+
+  // Unified diff → colored rows with old/new line numbers; notes anchor by `new` line number or `match` substring.
+  components.diff = function (d) {
+    var text = String(d.diff || d.text || "").replace(/\r/g, "");
+    var rows = [], oldN = 0, newN = 0, adds = 0, dels = 0;
+    text.split("\n").forEach(function (raw) {
+      if (/^(diff |index |--- |\+\+\+ )/.test(raw)) return;
+      var h = raw.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@(.*)$/);
+      if (h) { oldN = +h[1]; newN = +h[2]; rows.push({ kind: "hunk", text: raw }); return; }
+      if (raw === "" && rows.length && rows[rows.length - 1].kind !== "hunk") return;
+      var c = raw[0], body = raw.slice(1);
+      if (c === "+") { rows.push({ kind: "add", o: "", n: newN++, text: body }); adds++; }
+      else if (c === "-") { rows.push({ kind: "del", o: oldN++, n: "", text: body }); dels++; }
+      else if (c === "\\") { rows.push({ kind: "meta", text: raw }); }
+      else { rows.push({ kind: "ctx", o: oldN++, n: newN++, text: body }); }
+    });
+    var notes = d.notes || [];
+    var noteFor = function (r) { return notes.filter(function (nt) { return (nt.new != null && r.n === nt.new) || (nt.old != null && r.o === nt.old) || (nt.match && r.text.indexOf(nt.match) >= 0 && !nt._used && (nt._used = true)); }); };
+    var box = el("div", "diff");
+    if (d.file) box.dataset.file = d.file;
+    var head = '<div class="diff-head"><span class="fname">' + esc(d.file || "") + '</span><span class="chip ok">+' + adds + '</span><span class="chip risk">−' + dels + "</span></div>";
+    var body = '<table class="diff-table"><tbody>';
+    rows.forEach(function (r) {
+      if (r.kind === "hunk" || r.kind === "meta") { body += '<tr class="hunk"><td colspan="3">' + esc(r.text) + "</td></tr>"; return; }
+      body += '<tr class="' + r.kind + '" data-line="' + (r.n === "" ? r.o : r.n) + '" data-side="' + (r.n === "" ? "old" : "new") + '"><td class="ln">' + (r.o === "" ? "" : r.o) + '</td><td class="ln">' + (r.n === "" ? "" : r.n) + '</td><td class="code"><span class="sign">' + (r.kind === "add" ? "+" : r.kind === "del" ? "−" : " ") + "</span>" + esc(r.text) + "</td></tr>";
+      noteFor(r).forEach(function (nt) { body += '<tr class="note"><td colspan="3"><div class="callout ' + (tone(nt.tone) || "note") + '"' + (nt.label ? ' data-label="' + esc(nt.label) + '"' : "") + ">" + (nt.text || "") + "</div></td></tr>"; });
+    });
+    box.innerHTML = head + body + "</tbody></table>";
+    if (d.caption) box.appendChild(el("p", "small muted", esc(d.caption)));
+    return box;
+  };
+
+  // Sequence diagram: actors across the top, lifelines, ordered messages (self-messages loop; dashed for returns).
+  components.sequence = function (d) {
+    var actors = d.actors || [], steps = d.steps || [];
+    var colW = Math.max(150, Math.min(220, 40 + 9 * Math.max.apply(null, actors.map(function (a) { return String(a.label).length; }).concat([8]))));
+    var x = {}; actors.forEach(function (a, i) { x[a.id] = 20 + colW / 2 + i * colW; });
+    var top = 56, rowH = 46, width = 40 + colW * actors.length, height = top + steps.length * rowH + 30;
+    var s = '<svg viewBox="0 0 ' + width + " " + height + '" width="' + width + '" height="' + height + '" role="img"><defs><marker id="kb-seq-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z"/></marker></defs>';
+    actors.forEach(function (a) {
+      var cx = x[a.id];
+      s += '<g class="actor ' + tone(a.tone) + '"><line x1="' + cx + '" y1="40" x2="' + cx + '" y2="' + (height - 10) + '"/><rect x="' + (cx - colW / 2 + 14) + '" y="6" width="' + (colW - 28) + '" height="34" rx="8"/><text x="' + cx + '" y="28" text-anchor="middle">' + esc(a.label) + "</text></g>";
+    });
+    steps.forEach(function (st, i) {
+      var y = top + i * rowH + 10, x1 = x[st.from], x2 = x[st.to]; if (x1 == null || x2 == null) return;
+      var cls = "msg " + tone(st.tone) + (st.dashed || st.reply ? " dashed" : "");
+      if (x1 === x2) { // self message
+        s += '<g class="' + cls + '"><path d="M' + x1 + "," + y + " h40 v22 h-40" + '" marker-end="url(#kb-seq-arrow)"/><text x="' + (x1 + 48) + '" y="' + (y + 15) + '">' + esc(st.label || "") + "</text></g>";
+      } else {
+        var dir = x2 > x1 ? 1 : -1, xe = x2 - dir * 4;
+        s += '<g class="' + cls + '"><line x1="' + x1 + '" y1="' + y + '" x2="' + xe + '" y2="' + y + '" marker-end="url(#kb-seq-arrow)"/><text x="' + ((x1 + x2) / 2) + '" y="' + (y - 6) + '" text-anchor="middle">' + esc(st.label || "") + "</text>" + (st.note ? '<text class="note" x="' + ((x1 + x2) / 2) + '" y="' + (y + 14) + '" text-anchor="middle">' + esc(st.note) + "</text>" : "") + "</g>";
+      }
+      if (st.gap) s += '<text class="gap" x="20" y="' + (y + 30) + '">' + esc(st.gap) + "</text>";
+    });
+    s += "</svg>";
+    var box = el("figure", "sequence", s);
+    if (d.caption) box.appendChild(el("figcaption", "", esc(d.caption)));
+    return box;
+  };
+
+  // Line chart (series over an index or numeric x) and a compact sparkline variant.
+  function lineSvg(d, spark) {
+    var series = (d.series || (d.values ? [{ values: d.values, label: d.label, tone: d.tone }] : [])).map(function (sr) {
+      var pts = sr.points ? sr.points.map(function (p) { return { x: +p[0], y: +p[1] }; }) : (sr.values || []).map(function (v, i) { return { x: i, y: +v }; });
+      return { label: sr.label || "", tone: tone(sr.tone) || "info", pts: pts.filter(function (p) { return isFinite(p.y); }) };
+    });
+    var all = [].concat.apply([], series.map(function (sr) { return sr.pts; }));
+    if (!all.length) throw new Error("line: no points");
+    var xs = all.map(function (p) { return p.x; }), ys = all.map(function (p) { return p.y; });
+    var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
+    var ymin = d.min != null ? +d.min : Math.min(0, Math.min.apply(null, ys)), ymax = d.max != null ? +d.max : Math.max.apply(null, ys);
+    if (ymax === ymin) ymax = ymin + 1; if (xmax === xmin) xmax = xmin + 1;
+    var W = spark ? (d.width || 120) : (d.width || 720), H = spark ? (d.height || 28) : (d.height || 240);
+    var padL = spark ? 2 : 48, padR = spark ? 2 : 16, padT = spark ? 2 : 12, padB = spark ? 2 : 28;
+    var sx = function (v) { return padL + (v - xmin) / (xmax - xmin) * (W - padL - padR); }, sy = function (v) { return H - padB - (v - ymin) / (ymax - ymin) * (H - padT - padB); };
+    var fmt = function (v) { return (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1) + "k" : +v.toFixed(2)) + (d.unit || ""); };
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '" role="img" class="' + (spark ? "spark" : "") + '">';
+    if (!spark) {
+      for (var t = 0; t <= 4; t++) { var yv = ymin + (ymax - ymin) * t / 4, yy = sy(yv); s += '<line class="grid" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/><text class="tick" x="' + (padL - 6) + '" y="' + (yy + 4) + '" text-anchor="end">' + fmt(yv) + "</text>"; }
+      var labels = d.x || [];
+      var n = labels.length || Math.min(8, Math.round(xmax - xmin) + 1);
+      for (var i = 0; i < n; i++) { var xv = labels.length ? i : xmin + (xmax - xmin) * i / Math.max(1, n - 1), lab = labels.length ? labels[i] : fmt(xv); if (labels.length && (labels.length > 12 && i % Math.ceil(labels.length / 12))) continue; s += '<text class="tick" x="' + sx(xv) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(lab) + "</text>"; }
+    }
+    series.forEach(function (sr) {
+      var path = sr.pts.map(function (p, i) { return (i ? "L" : "M") + sx(p.x).toFixed(1) + "," + sy(p.y).toFixed(1); }).join(" ");
+      s += '<g class="series ' + sr.tone + '"><path d="' + path + '"/>';
+      if (!spark) sr.pts.forEach(function (p) { s += '<circle cx="' + sx(p.x).toFixed(1) + '" cy="' + sy(p.y).toFixed(1) + '" r="3"><title>' + esc(sr.label) + " " + fmt(p.y) + "</title></circle>"; });
+      var last = sr.pts[sr.pts.length - 1];
+      if (spark) s += '<circle cx="' + sx(last.x).toFixed(1) + '" cy="' + sy(last.y).toFixed(1) + '" r="2.5"/>';
+      s += "</g>";
+    });
+    s += "</svg>";
+    return { svg: s, series: series, fmt: fmt };
+  }
+  components.line = function (d) {
+    var r = lineSvg(d, false);
+    var box = el("figure", "line", r.svg);
+    if (r.series.length > 1 || r.series[0].label) box.appendChild(el("div", "legend", r.series.map(function (sr) { var last = sr.pts[sr.pts.length - 1]; return '<span class="' + sr.tone + '"><i></i>' + esc(sr.label) + (last ? ' <b>' + r.fmt(last.y) + "</b>" : "") + "</span>"; }).join("")));
+    if (d.caption) box.appendChild(el("figcaption", "", esc(d.caption)));
+    return box;
+  };
+  components.sparkline = function (d) { var r = lineSvg(d, true); var box = el("span", "sparkline", r.svg); if (d.showLast !== false) { var last = r.series[0].pts[r.series[0].pts.length - 1]; box.appendChild(el("b", "", r.fmt(last.y))); } return box; };
+
+  // Tree: nested labels with connectors; nodes = [{label, note?, tone?, children?}]; collapsed beyond `open` depth.
+  components.tree = function (d) {
+    var openDepth = d.open != null ? +d.open : 99;
+    var render = function (nodes, depth) {
+      return "<ul>" + nodes.map(function (n) {
+        var kids = n.children && n.children.length;
+        var label = '<span class="lbl ' + tone(n.tone) + '">' + esc(n.label) + "</span>" + (n.note ? '<span class="note">' + n.note + "</span>" : "");
+        if (!kids) return '<li class="leaf">' + label + "</li>";
+        return "<li><details" + (depth < openDepth ? " open" : "") + "><summary>" + label + "</summary>" + render(n.children, depth + 1) + "</details></li>";
+      }).join("") + "</ul>";
+    };
+    var box = el("div", "tree", render(d.nodes || d, 0));
+    if (d.caption) box.appendChild(el("p", "small muted", esc(d.caption)));
+    return box;
+  };
+
+  // Matrix / heatmap: rows × cols; cell = tone string | {tone, label, title, href}; optional legend {tone: meaning}.
+  components.matrix = function (d) {
+    var rows = d.rows || [], cols = d.cols || [];
+    var cell = function (r, c, ri, ci) { var v = Array.isArray(d.cells) ? (d.cells[ri] || [])[ci] : ((d.cells || {})[r] || {})[c]; if (v == null) return { tone: "", label: "" }; return typeof v === "string" ? { tone: tone(v) || "", label: d.symbols === false ? "" : ({ ok: "●", warn: "◑", risk: "✕", info: "○", muted: "–" }[v] || v) } : { tone: tone(v.tone), label: v.label != null ? v.label : "", title: v.title, href: v.href }; };
+    var t = '<table class="data matrix"><thead><tr><th>' + esc(d.corner || "") + "</th>" + cols.map(function (c) { return "<th>" + esc(c) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    rows.forEach(function (r, ri) { t += "<tr><th>" + esc(r) + "</th>" + cols.map(function (c, ci) { var v = cell(r, c, ri, ci); var inner = v.href ? '<a href="' + esc(v.href) + '">' + esc(v.label) + "</a>" : esc(v.label); return '<td class="cell ' + v.tone + '"' + (v.title ? ' title="' + esc(v.title) + '"' : "") + ">" + inner + "</td>"; }).join("") + "</tr>"; });
+    t += "</tbody></table>";
+    var box = el("div", "matrix-wrap", t);
+    if (d.legend) box.appendChild(el("div", "legend", Object.keys(d.legend).map(function (k) { return '<span class="' + tone(k) + '"><i></i>' + esc(d.legend[k]) + "</span>"; }).join("")));
+    if (d.caption) box.appendChild(el("p", "small muted", esc(d.caption)));
+    return box;
+  };
+
+  function renderComponents() {
+    [].forEach.call(main.querySelectorAll('script[type="application/json"][data-component]'), function (script) {
+      var name = script.getAttribute("data-component");
+      try {
+        var data = JSON.parse(script.textContent);
+        if (!components[name]) throw new Error("unknown component: " + name);
+        var node = components[name](data);
+        script.parentNode.replaceChild(node, script);
+      } catch (e) {
+        console.error("component " + name + ": " + e.message);
+        script.parentNode.replaceChild(el("div", "callout risk", "<b>Component <code>" + esc(name) + "</code> failed:</b> " + esc(e.message)), script);
+      }
+    });
+  }
+
+  // ---------- boot ----------
+  function boot() {
+    renderHeader();
+    renderComponents();
+    wireTabs(); wireCopy(); wireAnnotated(); wireSortable(); wireDeck();
+    renderToc();
+    console.log("[kb-ready]");
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+
+</script>
+<!-- kb:script:end -->
+</body>
+</html>
