@@ -134,7 +134,7 @@
     try { t = a.selector ? document.querySelector(a.selector) : null; } catch (e) {}
     if (!t && a.label) { // selector drifted (artifact rebuilt with different structure): fall back to label text within the section
       var scope = (a.section && document.getElementById(a.section)) || main;
-      t = [].filter.call(scope.querySelectorAll(PICKABLE), function (x) { return x.textContent.replace(/\s+/g, " ").trim().slice(0, 80) === a.label; })[0] || null;
+      t = [].filter.call(scope.querySelectorAll(PICKABLE), function (x) { var t = (x.innerText || x.textContent).replace(/\s+/g, " ").trim().slice(0, 80); return t === a.label || x.textContent.replace(/\s+/g, " ").trim().slice(0, 80) === a.label; })[0] || null;
     }
     if (!t) return;
     t.classList.add("kb-anno-box", note.kind); if (note.status === "resolved") t.classList.add("resolved");
