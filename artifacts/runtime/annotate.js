@@ -51,7 +51,7 @@
   }
   function pickTarget(node) { var e = node.nodeType === 1 ? node : node.parentElement; if (!e || !main.contains(e) || e.closest("#kb-panel,#kb-pop,#kb-fab,.kb-header,.kb-footer,.kb-toc")) return null; return e.closest(PICKABLE) || e; }
   function elementAnchor(target) {
-    var label = (target.getAttribute("data-title") || target.getAttribute("aria-label") || target.textContent || target.tagName).replace(/\s+/g, " ").trim().slice(0, 80);
+    var label = (target.getAttribute("data-title") || target.getAttribute("aria-label") || target.innerText || target.textContent || target.tagName).replace(/\s+/g, " ").trim().slice(0, 80);
     var kindOf = target.matches("tr[data-line]") ? "diff line" : target.matches(".flow .node") ? "flow node" : target.matches(".bars .bar") ? "bar" : target.matches(".timeline .tl") ? "timeline entry" : target.matches(".board-card") ? "card" : target.matches(".kpi") ? "kpi" : target.matches(".callout") ? "callout" : target.matches(".card") ? "card" : target.matches("pre,.code,.annotated") ? "code block" : target.matches("table") ? "table" : target.tagName.toLowerCase();
     return Object.assign(anchorFor(target), { selector: cssPath(target), element: kindOf, label: label });
   }
