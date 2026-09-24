@@ -286,6 +286,7 @@ example of the components that type usually needs (kept tiny). Types (from `type
 
 - v1 (2026-09-02) — initial runtime.
 - v3 (2026-09-02) — `flow`: word-wrapped label/sub with node size following the text; edge labels get a canvas-colored halo (also in `sequence`).
+- v4 (2026-09-23) — `deck`: Space/arrow keys and click-to-advance are ignored while the annotation popup or panel is open, in form fields, with modifier keys, during a text selection, and in pin mode, so annotating never changes the slide.
 - v2 (2026-09-02) — `diff`, `sequence`, `line`/`sparkline`, `tree`, `matrix`; `review` template uses `diff`. `rebuild --all` applied.
 - 2026-09-02 — review sessions (`session`/`notes`/`reply`/`resolve`) with pi-intercom delivery; annotation layer is session-only, not part of the runtime version.
 

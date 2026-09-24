@@ -161,12 +161,15 @@
     function show(n) { i = (n + slides.length) % slides.length; slides.forEach(function (s, j) { s.classList.toggle("active", j === i); }); counter.textContent = (i + 1) + " / " + slides.length; history.replaceState(null, "", "#" + (i + 1)); }
     if (all) { main.classList.add("all"); return; }
     show(i);
+    // Annotation UI and form fields own the keyboard; the deck only navigates when nothing else wants the key.
+    function annotating(t) { var pop = document.getElementById("kb-pop"); return (pop && pop.style.display === "block") || (t && t.closest && t.closest("textarea,input,select,[contenteditable],#kb-pop,#kb-panel")); }
     document.addEventListener("keydown", function (e) {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || annotating(e.target)) return;
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
       else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
       else if (e.key === "Home") show(0); else if (e.key === "End") show(slides.length - 1);
     });
-    main.addEventListener("click", function (e) { if (e.target.closest("a,button,textarea,input,details,summary")) return; show(i + 1); });
+    main.addEventListener("click", function (e) { if (e.altKey || annotating(e.target) || !window.getSelection().isCollapsed || document.body.classList.contains("kb-pin-mode") || e.target.closest("a,button,textarea,input,details,summary,mark.kb-anno,.kb-anno-box")) return; show(i + 1); });
     window.addEventListener("beforeprint", function () { main.classList.add("all"); });
     window.addEventListener("afterprint", function () { main.classList.remove("all"); show(i); });
   }

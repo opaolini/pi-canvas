@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 
 /** Bump when runtime/*.css|js change in a way existing artifacts should pick up via `rebuild --all`. */
-export const RUNTIME_VERSION = 3;
+export const RUNTIME_VERSION = 4;
 
 export type Meta = Record<string, string>;
 export type CheckReport = { errors: string[]; warnings: string[] };
